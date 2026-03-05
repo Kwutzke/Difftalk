@@ -94,9 +94,7 @@ function main() {
 
   if (!raw.trim()) {
     console.error(
-      ref
-        ? `No diff output for ref: ${ref}`
-        : `No unstaged changes. Try: difftalk HEAD~1`
+      ref ? `No diff output for ref: ${ref}` : `No unstaged changes. Try: difftalk HEAD~1`
     )
     process.exit(0)
   }
@@ -109,7 +107,10 @@ function main() {
   }
 
   // Track UI state for session persistence
-  let currentUIState: UIState = initialUIState ?? { selectedFileIndex: 0, selectedHunkIndex: 0 }
+  let currentUIState: UIState = initialUIState ?? {
+    selectedFileIndex: 0,
+    selectedHunkIndex: 0,
+  }
   const handleUIStateChange = (state: UIState) => {
     currentUIState = state
   }
