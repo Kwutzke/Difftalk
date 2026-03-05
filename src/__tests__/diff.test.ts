@@ -62,8 +62,8 @@ describe("parseDiffOutput", () => {
   it("extracts correct hunk IDs", () => {
     const files = parseDiffOutput(sampleDiff)
     const hunks = files[0].hunks
-    expect(hunks[0].id).toBe("src/handler.go:42")
-    expect(hunks[1].id).toBe("src/handler.go:102")
+    expect(hunks[0].id).toBe("src/handler.go:0:42")
+    expect(hunks[1].id).toBe("src/handler.go:1:102")
   })
 
   it("extracts hunk headers", () => {

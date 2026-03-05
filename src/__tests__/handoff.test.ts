@@ -49,9 +49,8 @@ describe("buildHandoffPrompt", () => {
   it("includes instructions for Claude Code", () => {
     const comments = [makeComment("1", "file.go:1", "fix this")]
     const prompt = buildHandoffPrompt(comments)
-    expect(prompt).toContain("clarification")
-    expect(prompt).toContain("implementation plan")
-    expect(prompt).toContain("Wait for approval")
+    expect(prompt).toContain("Implement all the changes")
+    expect(prompt).toContain("separate commit")
   })
 
   it("separates multiple comments with dividers", () => {
@@ -76,6 +75,6 @@ describe("buildHandoffPrompt", () => {
     const prompt = buildHandoffPrompt([])
     expect(prompt).toContain("Review comments:")
     // Should still have the instruction structure
-    expect(prompt).toContain("implementation plan")
+    expect(prompt).toContain("Implement all the changes")
   })
 })

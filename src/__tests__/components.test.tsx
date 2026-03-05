@@ -270,7 +270,7 @@ describe("ChatPanel", () => {
       />
     )
     expect(output).toContain("[enter] send")
-    expect(output).toContain("[f] fix hunk")
+    expect(output).toContain("[ctrl+f] fix")
     expect(output).toContain("[esc] close")
   })
 })
