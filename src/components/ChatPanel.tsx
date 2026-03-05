@@ -2,6 +2,8 @@ import React, { useState } from "react"
 import { Box, Text, useInput } from "ink"
 import type { Comment, Hunk } from "../types.js"
 
+const MAX_VISIBLE_MESSAGES = 6
+
 interface Props {
   hunk: Hunk | null
   comment: Comment | null
@@ -57,6 +59,10 @@ export default function ChatPanel({
     ? `Discussion: ${hunk.file}:${hunk.startLine}`
     : `Comment: ${hunk.file}:${hunk.startLine}`
 
+  const thread = comment?.thread ?? []
+  const hiddenCount = Math.max(0, thread.length - MAX_VISIBLE_MESSAGES)
+  const visibleMessages = hiddenCount > 0 ? thread.slice(-MAX_VISIBLE_MESSAGES) : thread
+
   return (
     <Box
       flexDirection="column"
@@ -72,8 +78,15 @@ export default function ChatPanel({
         <Text dimColor> (esc to close)</Text>
       </Box>
 
+      {/* Hidden messages indicator */}
+      {hiddenCount > 0 && (
+        <Box>
+          <Text dimColor>... {hiddenCount} earlier message{hiddenCount > 1 ? "s" : ""}</Text>
+        </Box>
+      )}
+
       {/* Thread messages */}
-      {comment?.thread.map((msg, i) => (
+      {visibleMessages.map((msg, i) => (
         <Box key={i} marginBottom={0}>
           <Text color={msg.role === "user" ? "green" : "cyan"} bold>
             {msg.role === "user" ? "You" : "Claude"}:{" "}

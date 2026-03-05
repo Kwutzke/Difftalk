@@ -45,6 +45,8 @@ export default function DiffView({
     )
   }
 
+  const selectedHunk = hunks[selectedHunkIndex]
+
   return (
     <Box
       flexDirection="column"
@@ -62,34 +64,32 @@ export default function DiffView({
           ({selectedHunkIndex + 1}/{hunks.length})
         </Text>
       </Box>
+
+      {/* Compact hunk list */}
       {hunks.map((hunk, i) => {
         const isSelected = i === selectedHunkIndex
         const commentCount = commentMarkers.get(hunk.id) ?? 0
         return (
-          <Box key={hunk.id} flexDirection="column" marginBottom={1}>
-            <Box>
-              <Text color="cyan" dimColor={!isSelected}>
-                {hunk.header}
-              </Text>
-              {commentCount > 0 && <Text color="yellow"> [{commentCount}]</Text>}
-              {isSelected && isFocused && <Text color="blue"> ◀</Text>}
-            </Box>
-            <Box flexDirection="column">
-              {hunk.content.split("\n").map((line, li) => (
-                <Text key={li} dimColor={!isSelected}>
-                  {colorLine(line)}
-                </Text>
-              ))}
-            </Box>
+          <Box key={hunk.id}>
+            <Text color={isSelected ? "blue" : "gray"}>
+              {isSelected ? "▸ " : "  "}
+            </Text>
+            <Text color="cyan" dimColor={!isSelected}>
+              {hunk.header}
+            </Text>
+            {commentCount > 0 && <Text color="yellow"> [{commentCount}]</Text>}
           </Box>
         )
       })}
+
+      {/* Expanded selected hunk */}
+      {selectedHunk && (
+        <Box flexDirection="column" marginTop={1}>
+          {selectedHunk.content.split("\n").map((line, li) => (
+            <Text key={li}>{plainAnsi(line)}</Text>
+          ))}
+        </Box>
+      )}
     </Box>
   )
-}
-
-function colorLine(line: string): string {
-  if (line.startsWith("+")) return `\x1b[32m${line}\x1b[0m`
-  if (line.startsWith("-")) return `\x1b[31m${line}\x1b[0m`
-  return line
 }
