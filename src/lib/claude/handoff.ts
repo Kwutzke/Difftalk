@@ -18,12 +18,8 @@ ${c.thread.map((m) => `  ${m.role}: ${m.content}`).join("\n")}`
 Review comments:
 ${commentSummary}
 
-Before implementing anything:
-1. Review all comments and ask for clarification on anything ambiguous
-2. Once everything is clear, propose an ordered implementation plan
-3. Wait for approval before making any changes
-
-Start by summarizing what you understand from the review and asking any clarifying questions.`
+Implement all the changes described in the review comments above.
+Apply each fix in a separate commit with a clear message referencing the review comment number.`
 }
 
 export function findClaudeBinary(): string {

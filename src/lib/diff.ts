@@ -42,12 +42,12 @@ export function parseDiffOutput(raw: string): DiffFile[] {
   return files.map((file) => {
     const filename = file.to ?? file.from ?? "unknown"
 
-    const hunks: Hunk[] = file.chunks.map((chunk) => {
+    const hunks: Hunk[] = file.chunks.map((chunk, chunkIndex) => {
       const lines = chunk.changes.map((c) => c.content).join("\n")
 
       const startLine = chunk.newStart
       const endLine = chunk.newStart + chunk.newLines - 1
-      const id = `${filename}:${startLine}`
+      const id = `${filename}:${chunkIndex}:${startLine}`
 
       return {
         id,

@@ -31,7 +31,7 @@ export default function ChatPanel({
         onClose()
         return
       }
-      if (ch === "f" && !input) {
+      if (key.ctrl && ch === "f") {
         onFix()
         return
       }
@@ -83,13 +83,13 @@ export default function ChatPanel({
       ))}
 
       {/* Streaming response */}
-      {isStreaming && streamingText && (
+      {streamingText && (
         <Box marginBottom={0}>
           <Text color="cyan" bold>
             Claude:{" "}
           </Text>
           <Text wrap="wrap">{streamingText}</Text>
-          <Text color="yellow">▊</Text>
+          {isStreaming && <Text color="yellow">▊</Text>}
         </Box>
       )}
 
@@ -110,7 +110,7 @@ export default function ChatPanel({
 
       {/* Help bar */}
       <Box>
-        <Text dimColor>[enter] send [f] fix hunk [esc] close</Text>
+        <Text dimColor>[enter] send [ctrl+f] fix [esc] close</Text>
       </Box>
     </Box>
   )
