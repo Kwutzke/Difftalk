@@ -1,16 +1,20 @@
 # difftalk
 
-Terminal UI for reviewing AI-generated code diffs with inline Claude conversations.
+Terminal UI for reviewing code diffs with inline Claude conversations.
 
 Browse diffs hunk-by-hunk, leave comments, discuss changes with Claude, and apply inline fixes — all without leaving the terminal.
+
+## Prerequisites
+
+- [Node.js](https://nodejs.org) 18+ (runtime)
+- [Bun](https://bun.sh) (package manager and test runner)
+- `ANTHROPIC_API_KEY` environment variable set for Claude features (`d`, `f`, `p`)
 
 ## Install
 
 ```bash
 bun install
 ```
-
-Requires [Node.js](https://nodejs.org) 18+ and [Bun](https://bun.sh) (for package management and tests).
 
 ## Usage
 
@@ -25,7 +29,7 @@ bun run start abc1234
 # Resume a previous session
 bun run start --resume
 
-# Export comments as markdown
+# Export saved comments as markdown (does not start the TUI)
 bun run start --export review.md
 bun run start --export              # writes difftalk-review.md
 
@@ -33,17 +37,22 @@ bun run start --export              # writes difftalk-review.md
 bun run start --but
 ```
 
+**Note:** `--export` must come before any positional git ref argument.
+
 ## Keyboard shortcuts
 
-| Key       | Action                              |
-| --------- | ----------------------------------- |
-| `Tab`     | Cycle focus: file list ↔ diff view  |
-| `j` / `k` | Navigate files or hunks             |
-| `c`       | Add a comment on the current hunk   |
-| `d`       | Discuss the current hunk with Claude |
-| `f`       | Ask Claude to fix the current hunk  |
-| `Esc`     | Close chat panel                    |
-| `q`       | Quit (auto-saves session)           |
+| Key       | Action                                        |
+| --------- | --------------------------------------------- |
+| `Tab`     | Cycle focus: file list / diff view             |
+| `j` / `k` | Navigate files or hunks                       |
+| `c`       | Add a comment on the current hunk              |
+| `d`       | Discuss the current hunk with Claude           |
+| `f`       | Ask Claude to fix the current hunk             |
+| `p`       | Hand off all comments to Claude Code (plan)    |
+| `Esc`     | Close chat panel                               |
+| `q`       | Quit (auto-saves session)                      |
+
+Inside the chat panel, press `Enter` to send a follow-up message.
 
 ## Configuration
 
@@ -51,28 +60,30 @@ Create `~/.config/difftalk/config.toml`:
 
 ```toml
 # Default git ref when none is passed on the CLI
-defaultRef = "HEAD~1"
+default_ref = "HEAD~1"
 
 # Syntax highlighter: "bat" or "plain"
 highlighter = "bat"
 
 # Claude model to use
-claudeModel = "claude-sonnet-4-20250514"
+claude_model = "claude-sonnet-4-20250514"
 
 # Max conversation turns per discussion
-maxTurns = 5
+max_turns = 5
 ```
 
 ## Session persistence
 
 Sessions auto-save to `.difftalk/session.json` on exit. Use `--resume` to pick up where you left off, or `--export` to dump all comments as a markdown review file.
 
+Consider adding `.difftalk/` to your `.gitignore`.
+
 ## Development
 
 ```bash
 bun run dev          # Run in development mode
 bun run typecheck    # Type-check with tsc
-bun test             # Run tests (90 tests)
+bun run test         # Run tests
 bun run format       # Format with prettier
 bun run format:check # Check formatting
 ```
@@ -99,6 +110,7 @@ src/
       session.ts            # Claude hunk discussions
       executor.ts           # Claude inline fix executor
       handoff.ts            # Full session handoff to Claude Code
+  __tests__/                # Unit and integration tests
 ```
 
 ## License
