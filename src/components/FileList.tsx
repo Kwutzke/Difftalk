@@ -52,7 +52,9 @@ export default function FileList({
               inverse={isSelected && isFocused}
             >
               {" "}
-              {file.filename.split("/").pop()}
+              {file.filename.length > 26
+                ? "…" + file.filename.slice(-(25))
+                : file.filename}
             </Text>
             {count > 0 && <Text color="yellow"> {count}●</Text>}
           </Box>

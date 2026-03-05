@@ -10,12 +10,27 @@ import { exportCommentsAsMarkdown } from "./lib/export.js"
 import { setHighlighterMode } from "./lib/highlight.js"
 import App from "./components/App.js"
 
+function printHelp() {
+  console.log(`difftalk — review diffs with inline Claude conversations
+
+Usage: difftalk [git-ref] [options]
+
+Options:
+  --but          Use GitButler diff instead of git
+  --resume       Resume a previous session
+  --export FILE  Export comments as markdown (default: difftalk-review.md)
+  --help, -h     Show this help
+
+Keys: [c]omment [d]iscuss [f]ix [p]lan [tab] switch [q]uit`)
+}
+
 function parseArgs(argv: string[]) {
   const args = argv.slice(2)
   let ref: string | undefined
   let useBut = false
   let resume = false
   let exportPath: string | undefined
+  let help = false
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]
@@ -25,19 +40,32 @@ function parseArgs(argv: string[]) {
       resume = true
     } else if (arg === "--export") {
       exportPath = args[++i] ?? "difftalk-review.md"
+    } else if (arg === "--help" || arg === "-h") {
+      help = true
     } else if (!arg.startsWith("-")) {
       ref = arg
     }
   }
 
-  return { ref, useBut, resume, exportPath }
+  return { ref, useBut, resume, exportPath, help }
 }
 
 function main() {
   const config = loadConfig()
   setHighlighterMode(config.highlighter)
-  const { ref: argRef, useBut, resume, exportPath } = parseArgs(process.argv)
+  const { ref: argRef, useBut, resume, exportPath, help } = parseArgs(process.argv)
   const cwd = process.cwd()
+
+  if (help) {
+    printHelp()
+    process.exit(0)
+  }
+
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.error(
+      "Warning: ANTHROPIC_API_KEY not set. Claude features (discuss, fix, plan) will not work."
+    )
+  }
 
   // Export mode: dump saved comments as markdown and exit
   if (exportPath) {
