@@ -8,8 +8,7 @@ import {
 import type { Comment } from "../types.js"
 
 describe("restoreComments", () => {
-  const prefix = () =>
-    `restore-${Date.now()}-${Math.random().toString(36).slice(2)}`
+  const prefix = () => `restore-${Date.now()}-${Math.random().toString(36).slice(2)}`
 
   it("restores comments into the store", () => {
     const hunkId = `${prefix()}/file.go:10`

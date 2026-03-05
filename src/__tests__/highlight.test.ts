@@ -30,13 +30,9 @@ describe("plainAnsi", () => {
   })
 
   it("handles multi-line input", () => {
-    const input = [
-      "@@ -1,3 +1,4 @@",
-      " context",
-      "-old",
-      "+new",
-      " more context",
-    ].join("\n")
+    const input = ["@@ -1,3 +1,4 @@", " context", "-old", "+new", " more context"].join(
+      "\n"
+    )
     const result = plainAnsi(input)
     const lines = result.split("\n")
     expect(lines).toHaveLength(5)

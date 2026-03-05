@@ -71,12 +71,8 @@ export default function DiffView({
               <Text color="cyan" dimColor={!isSelected}>
                 {hunk.header}
               </Text>
-              {commentCount > 0 && (
-                <Text color="yellow"> [{commentCount}]</Text>
-              )}
-              {isSelected && isFocused && (
-                <Text color="blue"> ◀</Text>
-              )}
+              {commentCount > 0 && <Text color="yellow"> [{commentCount}]</Text>}
+              {isSelected && isFocused && <Text color="blue"> ◀</Text>}
             </Box>
             <Box flexDirection="column">
               {hunk.content.split("\n").map((line, li) => (

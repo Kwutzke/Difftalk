@@ -20,9 +20,7 @@ describe("loadConfig", () => {
     const keys = Object.keys(config)
     // Should only have known keys (or be empty)
     for (const key of keys) {
-      expect(["defaultRef", "highlighter", "claudeModel", "maxTurns"]).toContain(
-        key
-      )
+      expect(["defaultRef", "highlighter", "claudeModel", "maxTurns"]).toContain(key)
     }
   })
 })

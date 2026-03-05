@@ -54,9 +54,7 @@ export default function FileList({
               {" "}
               {file.filename.split("/").pop()}
             </Text>
-            {count > 0 && (
-              <Text color="yellow"> {count}●</Text>
-            )}
+            {count > 0 && <Text color="yellow"> {count}●</Text>}
           </Box>
         )
       })}

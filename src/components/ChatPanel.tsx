@@ -110,9 +110,7 @@ export default function ChatPanel({
 
       {/* Help bar */}
       <Box>
-        <Text dimColor>
-          [enter] send  [f] fix hunk  [esc] close
-        </Text>
+        <Text dimColor>[enter] send [f] fix hunk [esc] close</Text>
       </Box>
     </Box>
   )

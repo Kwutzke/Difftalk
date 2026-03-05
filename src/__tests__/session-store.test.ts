@@ -60,9 +60,7 @@ describe("session-store", () => {
 
     const session = loadSession(tempDir)
     expect(session!.comments[0].createdAt).toBeInstanceOf(Date)
-    expect(session!.comments[0].createdAt.toISOString()).toBe(
-      "2026-01-15T10:30:00.000Z"
-    )
+    expect(session!.comments[0].createdAt.toISOString()).toBe("2026-01-15T10:30:00.000Z")
   })
 
   it("loadSession preserves thread messages", () => {

@@ -30,8 +30,12 @@ interface Props {
 
 export default function App({ files, config, initialUIState, onUIStateChange }: Props) {
   const { exit } = useApp()
-  const [selectedFileIndex, setSelectedFileIndex] = useState(initialUIState?.selectedFileIndex ?? 0)
-  const [selectedHunkIndex, setSelectedHunkIndex] = useState(initialUIState?.selectedHunkIndex ?? 0)
+  const [selectedFileIndex, setSelectedFileIndex] = useState(
+    initialUIState?.selectedFileIndex ?? 0
+  )
+  const [selectedHunkIndex, setSelectedHunkIndex] = useState(
+    initialUIState?.selectedHunkIndex ?? 0
+  )
   const [focusedPane, setFocusedPane] = useState<Pane>("files")
   const [chatOpen, setChatOpen] = useState(false)
   const [inputMode, setInputMode] = useState<InputMode>("normal")
@@ -64,13 +68,10 @@ export default function App({ files, config, initialUIState, onUIStateChange }: 
     if (comments.length > 0) hunkCommentMarkers.set(hunk.id, comments.length)
   }
 
-  const handleSelectFile = useCallback(
-    (index: number) => {
-      setSelectedFileIndex(index)
-      setSelectedHunkIndex(0)
-    },
-    []
-  )
+  const handleSelectFile = useCallback((index: number) => {
+    setSelectedFileIndex(index)
+    setSelectedHunkIndex(0)
+  }, [])
 
   const startClaude = useCallback(
     async (comment: Comment, message: string) => {
@@ -304,14 +305,9 @@ export default function App({ files, config, initialUIState, onUIStateChange }: 
       {/* Status bar */}
       {!chatOpen && inputMode === "normal" && (
         <Box paddingX={1}>
-          <Text dimColor>
-            [c]omment  [d]iscuss  [f]ix  [p]lan  [tab] switch pane  [q]uit
-          </Text>
+          <Text dimColor>[c]omment [d]iscuss [f]ix [p]lan [tab] switch pane [q]uit</Text>
           {getAllComments().length > 0 && (
-            <Text color="yellow">
-              {" "}
-              ({getAllComments().length} comments)
-            </Text>
+            <Text color="yellow"> ({getAllComments().length} comments)</Text>
           )}
         </Box>
       )}
