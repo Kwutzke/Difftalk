@@ -44,6 +44,7 @@ export default function App({ files, config, initialUIState, onUIStateChange }: 
   const [isStreaming, setIsStreaming] = useState(false)
   const [activeComment, setActiveComment] = useState<Comment | null>(null)
   const [isFixing, setIsFixing] = useState(false)
+  const [confirmingPlan, setConfirmingPlan] = useState(false)
   const [, forceUpdate] = useState(0)
   const abortRef = useRef<AbortController | null>(null)
   const cwd = process.cwd()
@@ -247,13 +248,24 @@ export default function App({ files, config, initialUIState, onUIStateChange }: 
         setTimeout(() => handleFix(), 0)
         return
       }
+      if (confirmingPlan) {
+        if (input === "y" || input === "p") {
+          setConfirmingPlan(false)
+          handlePlan()
+        } else {
+          setConfirmingPlan(false)
+        }
+        return
+      }
       if (input === "p") {
-        handlePlan()
+        setConfirmingPlan(true)
         return
       }
     },
     { isActive: !chatOpen || inputMode === "comment" }
   )
+
+  const allComments = getAllComments()
 
   return (
     <Box flexDirection="column" height="100%">
@@ -305,9 +317,15 @@ export default function App({ files, config, initialUIState, onUIStateChange }: 
       {/* Status bar */}
       {!chatOpen && inputMode === "normal" && (
         <Box paddingX={1}>
-          <Text dimColor>[c]omment [d]iscuss [f]ix [p]lan [tab] switch pane [q]uit</Text>
-          {getAllComments().length > 0 && (
-            <Text color="yellow"> ({getAllComments().length} comments)</Text>
+          {confirmingPlan ? (
+            <Text color="yellow" bold>Hand off to Claude Code? [y]es / any key to cancel</Text>
+          ) : (
+            <>
+              <Text dimColor>[c]omment [d]iscuss [f]ix [p]lan [tab] switch pane [q]uit</Text>
+              {allComments.length > 0 && (
+                <Text color="yellow"> ({allComments.length} comments)</Text>
+              )}
+            </>
           )}
         </Box>
       )}

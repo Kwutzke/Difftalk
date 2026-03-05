@@ -1,4 +1,4 @@
-import { execSync, execFileSync } from "node:child_process"
+import { execFileSync } from "node:child_process"
 import parseDiff from "parse-diff"
 import type { DiffFile, Hunk } from "../types.js"
 
@@ -24,12 +24,12 @@ export function getDiff(ref?: string): string {
 }
 
 export function getButDiff(): string {
-  return execSync("but diff", { encoding: "utf-8", maxBuffer: 10 * 1024 * 1024 })
+  return execFileSync("but", ["diff"], { encoding: "utf-8", maxBuffer: 10 * 1024 * 1024 })
 }
 
 export function hasButCli(): boolean {
   try {
-    execSync("which but", { stdio: "ignore" })
+    execFileSync("which", ["but"], { stdio: "ignore" })
     return true
   } catch {
     return false
@@ -66,5 +66,5 @@ export function parseDiffOutput(raw: string): DiffFile[] {
       filename,
       hunks,
     }
-  })
+  }).filter((f) => f.hunks.length > 0)
 }
