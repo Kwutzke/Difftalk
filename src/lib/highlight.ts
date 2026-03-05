@@ -2,8 +2,14 @@ import { execSync, spawnSync } from "node:child_process"
 
 let batCmd: string | null = null
 let batChecked = false
+let forcePlain = false
+
+export function setHighlighterMode(mode: "bat" | "plain" | undefined): void {
+  if (mode === "plain") forcePlain = true
+}
 
 function checkBatAvailable(): string | null {
+  if (forcePlain) return null
   if (batChecked) return batCmd
   batChecked = true
   for (const cmd of ["bat", "batcat"]) {

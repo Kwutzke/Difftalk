@@ -1,11 +1,23 @@
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs"
+import {
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+  existsSync,
+  unlinkSync,
+} from "node:fs"
 import { join } from "node:path"
 import type { Comment } from "../types.js"
 
-interface SessionData {
+export interface UIState {
+  selectedFileIndex: number
+  selectedHunkIndex: number
+}
+
+export interface SessionData {
   ref?: string
   comments: Comment[]
   savedAt: string
+  uiState?: UIState
 }
 
 function getSessionDir(cwd: string): string {
@@ -19,7 +31,8 @@ function getSessionFile(cwd: string): string {
 export function saveSession(
   cwd: string,
   comments: Comment[],
-  ref?: string
+  ref?: string,
+  uiState?: UIState
 ): void {
   const dir = getSessionDir(cwd)
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
@@ -28,6 +41,7 @@ export function saveSession(
     ref,
     comments,
     savedAt: new Date().toISOString(),
+    uiState,
   }
 
   writeFileSync(getSessionFile(cwd), JSON.stringify(data, null, 2), "utf-8")
@@ -58,7 +72,6 @@ export function hasSession(cwd: string): boolean {
 export function clearSession(cwd: string): void {
   const file = getSessionFile(cwd)
   if (existsSync(file)) {
-    const { unlinkSync } = require("node:fs")
     unlinkSync(file)
   }
 }

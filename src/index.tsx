@@ -4,8 +4,10 @@ import { writeFileSync } from "node:fs"
 import { getDiff, getButDiff, hasButCli, parseDiffOutput } from "./lib/diff.js"
 import { loadConfig } from "./lib/config.js"
 import { loadSession, saveSession } from "./lib/session-store.js"
+import type { UIState } from "./lib/session-store.js"
 import { restoreComments, getAllComments } from "./lib/comments.js"
 import { exportCommentsAsMarkdown } from "./lib/export.js"
+import { setHighlighterMode } from "./lib/highlight.js"
 import App from "./components/App.js"
 
 function parseArgs(argv: string[]) {
@@ -33,6 +35,7 @@ function parseArgs(argv: string[]) {
 
 function main() {
   const config = loadConfig()
+  setHighlighterMode(config.highlighter)
   const { ref: argRef, useBut, resume, exportPath } = parseArgs(process.argv)
   const cwd = process.cwd()
 
@@ -51,7 +54,8 @@ function main() {
 
   const ref = argRef ?? config.defaultRef
 
-  // Resume mode: restore previous session's comments
+  // Resume mode: restore previous session's comments and UI state
+  let initialUIState: UIState | undefined
   if (resume) {
     const session = loadSession(cwd)
     if (!session) {
@@ -59,6 +63,7 @@ function main() {
       process.exit(1)
     }
     restoreComments(session.comments)
+    initialUIState = session.uiState
     console.error(`Resumed session with ${session.comments.length} comments`)
   }
 
@@ -103,11 +108,17 @@ function main() {
     process.exit(0)
   }
 
+  // Track UI state for session persistence
+  let currentUIState: UIState = initialUIState ?? { selectedFileIndex: 0, selectedHunkIndex: 0 }
+  const handleUIStateChange = (state: UIState) => {
+    currentUIState = state
+  }
+
   // Auto-save on exit
   const handleExit = () => {
     const comments = getAllComments()
     if (comments.length > 0) {
-      saveSession(cwd, comments, ref)
+      saveSession(cwd, comments, ref, currentUIState)
     }
   }
   process.on("exit", handleExit)
@@ -116,7 +127,14 @@ function main() {
     process.exit(0)
   })
 
-  render(<App files={files} />)
+  render(
+    <App
+      files={files}
+      config={config}
+      initialUIState={initialUIState}
+      onUIStateChange={handleUIStateChange}
+    />
+  )
 }
 
 main()

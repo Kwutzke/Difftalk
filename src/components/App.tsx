@@ -1,6 +1,8 @@
-import React, { useState, useCallback, useRef } from "react"
+import React, { useState, useCallback, useRef, useEffect } from "react"
 import { Box, Text, useApp, useInput } from "ink"
 import type { DiffFile, Comment, Hunk } from "../types.js"
+import type { DifftalkConfig } from "../lib/config.js"
+import type { UIState } from "../lib/session-store.js"
 import {
   addComment,
   getComments,
@@ -21,12 +23,15 @@ type InputMode = "normal" | "comment" | "chat"
 
 interface Props {
   files: DiffFile[]
+  config?: DifftalkConfig
+  initialUIState?: UIState
+  onUIStateChange?: (state: UIState) => void
 }
 
-export default function App({ files }: Props) {
+export default function App({ files, config, initialUIState, onUIStateChange }: Props) {
   const { exit } = useApp()
-  const [selectedFileIndex, setSelectedFileIndex] = useState(0)
-  const [selectedHunkIndex, setSelectedHunkIndex] = useState(0)
+  const [selectedFileIndex, setSelectedFileIndex] = useState(initialUIState?.selectedFileIndex ?? 0)
+  const [selectedHunkIndex, setSelectedHunkIndex] = useState(initialUIState?.selectedHunkIndex ?? 0)
   const [focusedPane, setFocusedPane] = useState<Pane>("files")
   const [chatOpen, setChatOpen] = useState(false)
   const [inputMode, setInputMode] = useState<InputMode>("normal")
@@ -38,6 +43,10 @@ export default function App({ files }: Props) {
   const [, forceUpdate] = useState(0)
   const abortRef = useRef<AbortController | null>(null)
   const cwd = process.cwd()
+
+  useEffect(() => {
+    onUIStateChange?.({ selectedFileIndex, selectedHunkIndex })
+  }, [selectedFileIndex, selectedHunkIndex, onUIStateChange])
 
   const currentFile = files[selectedFileIndex]
   const currentHunks = currentFile?.hunks ?? []
@@ -76,7 +85,8 @@ export default function App({ files }: Props) {
           comment,
           message,
           (text) => setStreamingText(text),
-          controller
+          controller,
+          { maxTurns: config?.maxTurns, model: config?.claudeModel }
         )
         appendToThread(comment.id, { role: "assistant", content: response })
         setStreamingText("")
@@ -145,7 +155,8 @@ export default function App({ files }: Props) {
         activeComment,
         cwd,
         (text) => setStreamingText(text),
-        controller
+        controller,
+        { maxTurns: config?.maxTurns, model: config?.claudeModel }
       )
       appendToThread(activeComment.id, {
         role: "assistant",

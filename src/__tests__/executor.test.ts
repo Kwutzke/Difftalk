@@ -12,8 +12,8 @@ describe("executor module", () => {
 
   it("fixHunk has correct parameter count", async () => {
     const mod = await import("../lib/claude/executor.js")
-    // function(hunk, comment, cwd, onChunk, abortController?)
-    expect(mod.fixHunk.length).toBe(5) // hunk, comment, cwd, onChunk, abortController
+    // function(hunk, comment, cwd, onChunk, abortController?, fixOpts?)
+    expect(mod.fixHunk.length).toBe(6)
   })
 })
 
@@ -25,7 +25,7 @@ describe("session module", () => {
 
   it("askAboutHunk has correct parameter count", async () => {
     const mod = await import("../lib/claude/session.js")
-    // function(hunk, comment, userMessage, onChunk, abortController?)
-    expect(mod.askAboutHunk.length).toBe(5) // hunk, comment, userMessage, onChunk, abortController
+    // function(hunk, comment, userMessage, onChunk, abortController?, askOpts?)
+    expect(mod.askAboutHunk.length).toBe(6)
   })
 })
