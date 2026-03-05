@@ -10,6 +10,8 @@ import {
   getAllComments,
 } from "../lib/comments.js"
 import { askAboutHunk } from "../lib/claude/session.js"
+import { fixHunk } from "../lib/claude/executor.js"
+import { jumpOffToClaudeCode } from "../lib/claude/handoff.js"
 import FileList from "./FileList.js"
 import DiffView from "./DiffView.js"
 import ChatPanel from "./ChatPanel.js"
@@ -32,8 +34,10 @@ export default function App({ files }: Props) {
   const [streamingText, setStreamingText] = useState("")
   const [isStreaming, setIsStreaming] = useState(false)
   const [activeComment, setActiveComment] = useState<Comment | null>(null)
+  const [isFixing, setIsFixing] = useState(false)
   const [, forceUpdate] = useState(0)
   const abortRef = useRef<AbortController | null>(null)
+  const cwd = process.cwd()
 
   const currentFile = files[selectedFileIndex]
   const currentHunks = currentFile?.hunks ?? []
@@ -124,8 +128,52 @@ export default function App({ files }: Props) {
     setActiveComment(null)
     setFocusedPane("diff")
     setIsStreaming(false)
+    setIsFixing(false)
     setStreamingText("")
   }, [])
+
+  const handleFix = useCallback(async () => {
+    if (!currentHunk || !activeComment || isFixing) return
+    setIsFixing(true)
+    setIsStreaming(true)
+    setStreamingText("")
+    const controller = new AbortController()
+    abortRef.current = controller
+    try {
+      const response = await fixHunk(
+        currentHunk,
+        activeComment,
+        cwd,
+        (text) => setStreamingText(text),
+        controller
+      )
+      appendToThread(activeComment.id, {
+        role: "assistant",
+        content: `[fix applied]\n${response}`,
+      })
+      setStreamingText("")
+      forceUpdate((n) => n + 1)
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name !== "AbortError") {
+        setStreamingText(`Fix error: ${err.message}`)
+      }
+    } finally {
+      setIsStreaming(false)
+      setIsFixing(false)
+      abortRef.current = null
+    }
+  }, [currentHunk, activeComment, isFixing, cwd])
+
+  const handlePlan = useCallback(async () => {
+    const comments = getAllComments()
+    if (comments.length === 0) return
+    // Suspend TUI and hand off to Claude Code
+    exit()
+    // Small delay to let Ink clean up
+    await new Promise((r) => setTimeout(r, 100))
+    const code = await jumpOffToClaudeCode(comments, cwd)
+    process.exit(code)
+  }, [cwd, exit])
 
   // Global key handling
   useInput(
@@ -175,6 +223,22 @@ export default function App({ files }: Props) {
         handleDiscuss()
         return
       }
+      if (input === "f") {
+        // Quick fix: open discuss panel if needed, then trigger fix
+        if (!currentHunk) return
+        const comment = getLatestComment(currentHunk.id)
+        if (!comment) return // need a comment first
+        setActiveComment(comment)
+        setChatOpen(true)
+        setFocusedPane("chat")
+        // Trigger fix after state update
+        setTimeout(() => handleFix(), 0)
+        return
+      }
+      if (input === "p") {
+        handlePlan()
+        return
+      }
     },
     { isActive: !chatOpen || inputMode === "comment" }
   )
@@ -221,9 +285,7 @@ export default function App({ files }: Props) {
           isStreaming={isStreaming}
           isActive={focusedPane === "chat" && inputMode === "normal"}
           onSendMessage={handleChatMessage}
-          onFix={() => {
-            /* Phase 2: executor */
-          }}
+          onFix={handleFix}
           onClose={handleCloseChat}
         />
       )}
