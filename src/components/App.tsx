@@ -195,8 +195,8 @@ export default function App({ files, config, initialUIState, onUIStateChange }: 
           setCommentInput("")
           return
         }
-        if (key.return && commentInput.trim()) {
-          const comment = addComment(currentHunk!.id, commentInput.trim())
+        if (key.return && commentInput.trim() && currentHunk) {
+          const comment = addComment(currentHunk.id, commentInput.trim())
           setCommentInput("")
           setInputMode("normal")
           setActiveComment(comment)

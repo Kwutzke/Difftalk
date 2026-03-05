@@ -1,10 +1,26 @@
-import { execSync } from "node:child_process"
+import { execSync, execFileSync } from "node:child_process"
 import parseDiff from "parse-diff"
 import type { DiffFile, Hunk } from "../types.js"
 
+function validateRef(ref: string): void {
+  // Reject shell metacharacters to prevent command injection
+  if (/[;&|`$(){}!<>'"\\]/.test(ref)) {
+    throw new Error(`Invalid git ref: ${ref}`)
+  }
+}
+
 export function getDiff(ref?: string): string {
-  const cmd = ref ? `git show ${ref} --format=""` : "git diff"
-  return execSync(cmd, { encoding: "utf-8", maxBuffer: 10 * 1024 * 1024 })
+  if (ref) {
+    validateRef(ref)
+    return execFileSync("git", ["show", ref, "--format="], {
+      encoding: "utf-8",
+      maxBuffer: 10 * 1024 * 1024,
+    })
+  }
+  return execFileSync("git", ["diff"], {
+    encoding: "utf-8",
+    maxBuffer: 10 * 1024 * 1024,
+  })
 }
 
 export function getButDiff(): string {

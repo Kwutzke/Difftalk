@@ -28,7 +28,7 @@ export function highlight(content: string, filename: string): string {
   const cmd = checkBatAvailable()
   if (!cmd) return plainAnsi(content)
 
-  const ext = filename.split(".").pop() ?? "txt"
+  const ext = filename.split(".").pop() || "txt"
   try {
     const result = spawnSync(
       cmd,
