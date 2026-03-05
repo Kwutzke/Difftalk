@@ -65,8 +65,8 @@ default_ref = "HEAD~1"
 # Syntax highlighter: "bat" or "plain"
 highlighter = "bat"
 
-# Claude model to use
-claude_model = "claude-sonnet-4-20250514"
+# Claude model to use (max subscription: claude-sonnet-4-6, claude-opus-4-6)
+claude_model = "claude-sonnet-4-6"
 
 # Max conversation turns per discussion
 max_turns = 5
