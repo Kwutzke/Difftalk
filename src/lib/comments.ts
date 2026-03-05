@@ -54,3 +54,16 @@ export function getLatestComment(hunkId: string): Comment | undefined {
   if (!comments || comments.length === 0) return undefined
   return comments[comments.length - 1]
 }
+
+export function restoreComments(comments: Comment[]): void {
+  store.clear()
+  let maxId = 0
+  for (const comment of comments) {
+    const existing = store.get(comment.hunkId) ?? []
+    existing.push(comment)
+    store.set(comment.hunkId, existing)
+    const numId = Number(comment.id)
+    if (!isNaN(numId) && numId > maxId) maxId = numId
+  }
+  nextId = maxId + 1
+}

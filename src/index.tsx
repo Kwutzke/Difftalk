@@ -1,20 +1,87 @@
 import React from "react"
 import { render } from "ink"
-import { getDiff, parseDiffOutput } from "./lib/diff.js"
+import { writeFileSync } from "node:fs"
+import { getDiff, getButDiff, hasButCli, parseDiffOutput } from "./lib/diff.js"
+import { loadConfig } from "./lib/config.js"
+import { loadSession, saveSession } from "./lib/session-store.js"
+import { restoreComments, getAllComments } from "./lib/comments.js"
+import { exportCommentsAsMarkdown } from "./lib/export.js"
 import App from "./components/App.js"
 
-function main() {
-  const ref = process.argv[2] // optional: git ref or commit hash
+function parseArgs(argv: string[]) {
+  const args = argv.slice(2)
+  let ref: string | undefined
+  let useBut = false
+  let resume = false
+  let exportPath: string | undefined
 
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i]
+    if (arg === "--but") {
+      useBut = true
+    } else if (arg === "--resume") {
+      resume = true
+    } else if (arg === "--export") {
+      exportPath = args[++i] ?? "difftalk-review.md"
+    } else if (!arg.startsWith("-")) {
+      ref = arg
+    }
+  }
+
+  return { ref, useBut, resume, exportPath }
+}
+
+function main() {
+  const config = loadConfig()
+  const { ref: argRef, useBut, resume, exportPath } = parseArgs(process.argv)
+  const cwd = process.cwd()
+
+  // Export mode: dump saved comments as markdown and exit
+  if (exportPath) {
+    const session = loadSession(cwd)
+    if (!session || session.comments.length === 0) {
+      console.error("No saved session to export. Run a review first.")
+      process.exit(1)
+    }
+    const md = exportCommentsAsMarkdown(session.comments)
+    writeFileSync(exportPath, md, "utf-8")
+    console.log(`Exported ${session.comments.length} comments to ${exportPath}`)
+    process.exit(0)
+  }
+
+  const ref = argRef ?? config.defaultRef
+
+  // Resume mode: restore previous session's comments
+  if (resume) {
+    const session = loadSession(cwd)
+    if (!session) {
+      console.error("No saved session found. Start a new review instead.")
+      process.exit(1)
+    }
+    restoreComments(session.comments)
+    console.error(`Resumed session with ${session.comments.length} comments`)
+  }
+
+  // Get diff
   let raw: string
   try {
-    raw = getDiff(ref)
+    if (useBut) {
+      if (!hasButCli()) {
+        console.error(
+          "GitButler CLI (but) not found. Install it or use git diff instead."
+        )
+        process.exit(1)
+      }
+      raw = getButDiff()
+    } else {
+      raw = getDiff(ref)
+    }
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
     console.error(`Failed to get diff: ${msg}`)
     console.error(
       ref
-        ? `Usage: difftalk [git-ref]`
+        ? `Usage: difftalk [git-ref] [--but] [--resume] [--export <file>]`
         : `No unstaged changes found. Try: difftalk HEAD~1`
     )
     process.exit(1)
@@ -35,6 +102,19 @@ function main() {
     console.error("No files found in diff output.")
     process.exit(0)
   }
+
+  // Auto-save on exit
+  const handleExit = () => {
+    const comments = getAllComments()
+    if (comments.length > 0) {
+      saveSession(cwd, comments, ref)
+    }
+  }
+  process.on("exit", handleExit)
+  process.on("SIGINT", () => {
+    handleExit()
+    process.exit(0)
+  })
 
   render(<App files={files} />)
 }

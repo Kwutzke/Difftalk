@@ -7,6 +7,19 @@ export function getDiff(ref?: string): string {
   return execSync(cmd, { encoding: "utf-8", maxBuffer: 10 * 1024 * 1024 })
 }
 
+export function getButDiff(): string {
+  return execSync("but diff", { encoding: "utf-8", maxBuffer: 10 * 1024 * 1024 })
+}
+
+export function hasButCli(): boolean {
+  try {
+    execSync("which but", { stdio: "ignore" })
+    return true
+  } catch {
+    return false
+  }
+}
+
 export function parseDiffOutput(raw: string): DiffFile[] {
   const files = parseDiff(raw)
 
